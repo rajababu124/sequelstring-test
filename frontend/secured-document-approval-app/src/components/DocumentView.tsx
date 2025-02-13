@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 interface Document {
-  id: string;
+  _id: string;
   name: string;
   fileType: string;
   status: "approved" | "pending";
@@ -10,6 +10,30 @@ interface Document {
 
 const DocumentView = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
+
+  const handleApprove = async (documentId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/approve/${documentId}`, {
+        method: "PUT",
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Document approved!");
+        setDocuments((prevDocs) =>
+          prevDocs.map((doc) =>
+            doc._id === documentId ? { ...doc, status: "approved" } : doc
+          )
+        );
+      } else {
+        alert(`Error: ${data.message}`);
+      }
+    } catch (error) {
+      console.error("Error approving document:", error);
+      alert("Error approving document.");
+    }
+  };
+
 
   useEffect(() => {
     const fetchDocuments = async () => {
@@ -26,7 +50,9 @@ const DocumentView = () => {
   }, []);
 
   const handleDownload = (filePath: string) => {
-    window.location.href = `http://localhost:5000/${filePath}`; // Initiates the download
+    console.log('file : ', filePath);
+    
+    window.location.href = `http://localhost:3000/${filePath}`; // Initiates the download
   };
 
   return (
@@ -42,15 +68,22 @@ const DocumentView = () => {
         </thead>
         <tbody>
           {documents.map((doc) => (
+            console.log(doc),
             <tr
-              key={doc.id}
-              // className="hover:bg-gray-700 cursor-pointer transition"
-              onClick={() => handleDownload(doc.filePath)}
+              key={doc._id}             
             >
               <td className="px-6 py-3">{doc.name}</td>
               <td className="px-6 py-3">{doc.fileType}</td>
               <td className="px-6 py-3">{doc.status}</td>
-              <td className="px-6 py-3 text-blue-400 hover:text-blue-800 duration-300">Download</td>
+              <td>
+              <button  onClick={() => handleDownload(doc.filePath)} className="px-6 py-3 text-blue-400 hover:text-blue-800 duration-300 cursor-pointer">View</button>
+              <button
+                  onClick={() => handleApprove(doc._id)}
+                  className="ml-4 px-6 py-3 text-green-400 hover:text-green-800 duration-300 cursor-pointer"
+                >
+                  Approve
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>

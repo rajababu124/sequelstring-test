@@ -70,6 +70,29 @@ const documentSchema = new mongoose.Schema({
     }
   });
   
+
+  // PUT route for approving a document
+app.put('/approve/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await Document.findById(id);
+
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found' });
+    }
+
+    // Update the status to 'approved'
+    document.status = 'approved';
+    await document.save();
+
+    res.status(200).json({ message: 'Document approved', document });
+  } catch (error) {
+    res.status(500).json({ message: 'Error approving document', error });
+  }
+});
+
+
+
   // Serve static files (e.g., document downloads)
   app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
